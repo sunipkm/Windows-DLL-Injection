@@ -1,10 +1,12 @@
 #include "Injector.h"
 
 #ifdef _WIN64
-	LPCSTR DllPath = "C:\\Users\\PATH\\TO\\DLL_FILE";
+    LPCSTR DllPath = "C:\\Users\\Mit\\Desktop\\Windows-DLL-Injector\\PayloadDLLBuild\\bin\\Release\\x64\\PayloadDLL.dll";
 #else
-	LPCSTR DllPath = "C:\\Users\\PATH\\TO\\DLL_FILE";
+    LPCSTR DllPath = "C:\\Users\\Mit\\Desktop\\Windows-DLL-Injector\\PayloadDLLBuild\\bin\\Release\\x64\\PayloadDLL.dll";
 #endif
+
+	LPCSTR procName = "Thorlabs.MotionControl.Kinesis.TestClient.exe";
 
 // variables for Privilege Escalation
 HANDLE hToken;
@@ -27,8 +29,9 @@ int main() {
 	
 	char szProc[80];
 
-	printf("Target process name : ");
-	scanf_s("%79s", szProc, 79);
+	DWORD PID = 0;
+
+	printf("Targetting process: %s\n", procName);
 
 	PROCESSENTRY32 PE32{ sizeof(PROCESSENTRY32) };
 	PE32.dwSize = sizeof(PE32);
@@ -41,26 +44,26 @@ int main() {
 		return 0;
 	}
 
-	DWORD PID = 0;
 	BOOL bRet = Process32First(hSnap, &PE32);
 	char yn[3];
 
 	while (bRet) {
 
 		//printf("process: %s\n", PE32.szExeFile);
-		if (!strcmp((LPCSTR)szProc, PE32.szExeFile)) {
+		if (strstr(procName, PE32.szExeFile)) {
 
+			printf("Process name found for this PID ---> %s\n", PE32.szExeFile);
 			PID = PE32.th32ProcessID;
-			printf("PID found for this process name ---> %d\n", PID);
-			printf("Is this OK ? [Input Y to continue with this PID] : ");
+			/* printf("Is this OK ? [Input Y to continue with this PID] : ");
 
 
 			scanf_s("%2s", yn, 2);
 
 			if ( !strcmp((LPCSTR)yn, "y") || !strcmp((LPCSTR)yn, "Y") )
-				break;
+				break; */
 
 			printf("\n\n");
+			break;
 
 		}
 
@@ -71,7 +74,7 @@ int main() {
 
 	printf("Target Program PID: %d\n\n", PID);
 
-	int InjectionMethod = -1;
+	int InjectionMethod = 1;
 
 	printf("\n\n");
 	printf("   1) CreateRemoteThread\n");
@@ -81,7 +84,8 @@ int main() {
 	printf("   5) RtlCreateUserThread\n");
 	printf("\n\n\n");
 	printf("Enter the Injection method: ");
-	scanf("%d", &InjectionMethod);
+	// nf("%d", &InjectionMethod);
+	printf("%d\n", InjectionMethod);
 
 	HANDLE hProcess = OpenProcess(
 		PROCESS_QUERY_INFORMATION |
