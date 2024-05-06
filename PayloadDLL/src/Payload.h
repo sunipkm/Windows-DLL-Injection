@@ -16,7 +16,7 @@ typedef NTSTATUS (WINAPI* pNtTerminateProcess)(
 #include "ftd2xx.h"
 
 extern "C" {
-	FILE* outp = NULL;
+	extern FILE* outp;
 	static bool first = true;
 
 	static FT_STATUS(WINAPI* TrueFtRead)(FT_HANDLE, LPVOID, DWORD, LPDWORD) = FT_Read;
@@ -51,11 +51,11 @@ extern "C" {
 		{
 			char out[100] = { 0, };
 			get_time(out, 100);
-			fprintf(outp, "SerRead [0x%08x, %d]: ", ftHandle, ret);
+			fprintf(outp, "SerRead [%u/%u, %d]: ", *lpBytesReturned, nBufferSize, ret);
 			for (DWORD i = 0; i < *lpBytesReturned; i++)
 				fprintf(outp, "%02x ", ((char*)lpBuffer)[i] & 0xff);
 			fprintf(outp, "\n\n");
-			fflush(outp);
+			// fflush(outp);
 		}
 		return ret;
 	}
@@ -78,11 +78,11 @@ extern "C" {
 		{
 			char out[100] = { 0, };
 			get_time(out, 100);
-			fprintf(outp, "SerWrite [0x%08x, %d]: ", ftHandle, ret);
+			fprintf(outp, "SerWrite [%u/%u, %d]: ", *lpBytesWritten, nBufferSize, ret);
 			for (DWORD i = 0; i < nBufferSize; i++)
 				fprintf(outp, "%02x ", ((char*)lpBuffer)[i] & 0xff);
 			fprintf(outp, "\n\n");
-			fflush(outp);
+			// fflush(outp);
 		}
 		return ret;
 	}
@@ -109,13 +109,14 @@ extern "C" {
 		if (outp)
 		{
 			get_time(out, 100);
-			fprintf(outp, "IoctlWrite: ");
+			fprintf(outp, "IoctlWrite [%u/-1]: ", nOutBufSize);
 			for (DWORD i = 0; i < nOutBufSize; i++)
 				fprintf(outp, "%02x ", ((char*)lpOutBuf)[i] & 0xff);
 			fprintf(outp, "\n");
-			fprintf(outp, "IoctlRead: ");
-			for (DWORD i = 0; i < nOutBufSize; i++)
-				fprintf(outp, "%02x ", ((char*)lpOutBuf)[i] & 0xff);
+			fprintf(outp, "IoctlRead [%u/%u]: ", *lpBytesReturned, nInBufSize);
+			DWORD cond = min(nInBufSize, *lpBytesReturned);
+			for (DWORD i = 0; i < cond; i++)
+				fprintf(outp, "%02x ", ((char*)lpInBuf)[i] & 0xff);
 			fprintf(outp, "\n\n");
 			// fflush(outp); */
 		} 

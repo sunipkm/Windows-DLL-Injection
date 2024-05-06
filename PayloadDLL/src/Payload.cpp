@@ -2,6 +2,8 @@
 #include <time.h>
 #include "detours.h"
 
+FILE* outp = NULL;
+
 void LogMessage(const char* message) {
 
 	printf("%s\n", message);
@@ -68,13 +70,20 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 		case DLL_PROCESS_DETACH: {
 			//MessageBox(0, "Hello I'm DLL injected inside you !!!", "DLL_PROCESS_DETACH", MB_ICONINFORMATION);
 			LogMessage("Hello I'm DLL injected inside you in DLL_PROCESS_DETACH mode!!!");
-			// DetourTransactionBegin();
-			// DetourUpdateThread(GetCurrentThread());
-			// DetourDetach(&(PVOID&)TrueFtRead, Hooked_FT_Read);
-			// DetourDetach(&(PVOID&)TrueFtWrite, Hooked_FT_Write);
-			// DetourDetach(&(PVOID&)TrueFtIoctl, Hooked_FT_IoCtl);
-			// DetourTransactionCommit();
+			DetourTransactionBegin();
+			DetourUpdateThread(GetCurrentThread());
+			DetourDetach(&(PVOID&)TrueFtRead, Hooked_FT_Read);
+			DetourDetach(&(PVOID&)TrueFtWrite, Hooked_FT_Write);
+			DetourDetach(&(PVOID&)TrueFtIoctl, Hooked_FT_IoCtl);
+			DetourTransactionCommit();
 			//exit(1);
+				
+			if (outp != NULL)
+			{
+				fflush(outp);
+				fclose(outp);
+			}
+
 			break;
 		}
 	}
